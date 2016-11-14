@@ -1,0 +1,212 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>IAPWS_IF97 Example</title><meta name="generator" content="MATLAB 8.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-10-11"><meta name="DC.source" content="IAPWS_IF97_example.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>IAPWS_IF97 Example</h1><!--introduction--><p><a href="http://en.wikipedia.org/wiki/Steam">Pressure-Enthalpy Diagram</a></p><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">initialize workspace</a></li><li><a href="#2">Pressure and temperature ranges</a></li><li><a href="#3">Calculate enthalpy</a></li><li><a href="#4">Inside the vapor dome</a></li><li><a href="#5">plot</a></li><li><a href="#6">Compare against XSteam</a></li></ul></div><h2>initialize workspace<a name="1"></a></h2><pre class="codeinput">close(<span class="string">'all'</span>),clear(<span class="string">'all'</span>),clc
+</pre><h2>Pressure and temperature ranges<a name="2"></a></h2><pre class="codeinput">press_rng = logspace(-2,2,300); <span class="comment">% [MPa] pressure (p) range</span>
+temp_rng = 273.15+linspace(1,800,300); <span class="comment">% [K] temperature (T) range</span>
+</pre><h2>Calculate enthalpy<a name="3"></a></h2><pre class="codeinput">[p,T] = meshgrid(press_rng,temp_rng); <span class="comment">% [MPa,K] mesh p &amp; T</span>
+h = IAPWS_IF97(<span class="string">'h_pT'</span>,p,T); <span class="comment">% [kJ/kg] enthalpy = f(p,T)</span>
+</pre><h2>Inside the vapor dome<a name="4"></a></h2><pre class="codeinput">psat = IAPWS_IF97(<span class="string">'psat_T'</span>,temp_rng); <span class="comment">% [MPa] saturation pressure</span>
+psat = psat(~isnan(psat)); <span class="comment">% trim out of range temperatures</span>
+hLsat = IAPWS_IF97(<span class="string">'hL_p'</span>,psat); <span class="comment">% [kJ/kg] saturated liquid enthalpy</span>
+hVsat = IAPWS_IF97(<span class="string">'hV_p'</span>,psat); <span class="comment">% [kJ/kg] saturated vapor enthalpy</span>
+pcrit = 22.064; <span class="comment">% [MPa] critical pressure</span>
+hLcrit = IAPWS_IF97(<span class="string">'hL_p'</span>,pcrit);hVcrit = IAPWS_IF97(<span class="string">'hV_p'</span>,pcrit);
+Tcrit = IAPWS_IF97(<span class="string">'Tsat_p'</span>,pcrit); hcrit = IAPWS_IF97(<span class="string">'h_pT'</span>,pcrit,Tcrit);
+hVL = hVsat - hLsat; <span class="comment">% [kJ/kg] heat of vaporization</span>
+hX = hLsat*ones(1,9) + hVL*(0.1:0.1:0.9); <span class="comment">% [kJ/kg] mixture enthalpy</span>
+</pre><h2>plot<a name="5"></a></h2><pre class="codeinput">contour(h,p,T,25) <span class="comment">% contour plot</span>
+<span class="comment">% format plot</span>
+set(gca,<span class="string">'YScale'</span>,<span class="string">'log'</span>),grid,hold(<span class="string">'all'</span>)
+title(<span class="string">'Pressure-Enthalpy Diagram'</span>), xlabel(<span class="string">'enthalpy, h [kJ/kg]'</span>),ylabel(<span class="string">'pressure, p [MPa]'</span>)
+plot([hLsat;hLcrit],[psat;pcrit],<span class="string">'b'</span>, <span class="keyword">...</span>
+    [hVsat;hVcrit],[psat;pcrit],<span class="string">'r'</span>, <span class="keyword">...</span>
+    hcrit,pcrit,<span class="string">'o'</span>, <span class="keyword">...</span>
+    hX,psat*ones(1,9),<span class="string">'g'</span>) <span class="comment">% vapor dome</span>
+vapdome_leg = cellstr([num2str((1:9)'*10),repmat(<span class="string">'%'</span>,9,1)]); <span class="comment">% vapor dome legend</span>
+legend(<span class="string">'Enthalpy'</span>,<span class="string">'Sat Liq'</span>,<span class="string">'Sat Vap'</span>,<span class="string">'Crit'</span>,vapdome_leg{:}) <span class="comment">% legend</span>
+</pre><img vspace="5" hspace="5" src="IAPWS_IF97_example_01.png" alt=""> <h2>Compare against XSteam<a name="6"></a></h2><p>To run this test download XSteam from the FileExchange first.</p><pre class="codeinput"><span class="comment">% test  IAPWS_IF97</span>
+Ntest = 30;fprintf(<span class="string">'Test IAPWS_IF97 %d times...\n'</span>,Ntest)
+testTime = zeros(Ntest,1);
+<span class="keyword">for</span> test = 1:Ntest
+    tic,h_test = IAPWS_IF97(<span class="string">'h_pT'</span>,p,T);testTime(test) = toc;
+<span class="keyword">end</span>
+IAWPS_IF97_avg_time = mean(testTime);
+fprintf(<span class="string">'IAPWS_IF97 avg time: %f\n\n'</span>,IAWPS_IF97_avg_time)
+<span class="comment">% test XSteam</span>
+pBar = p*10; <span class="comment">% convert to bar</span>
+TCelsius = T-273.15; <span class="comment">% convert to C</span>
+h_idx = nan(size(pBar));
+Ntest = 3;fprintf(<span class="string">'Test XSteam %d times...\n'</span>,Ntest)
+testTime = zeros(Ntest,1);
+tic
+<span class="keyword">for</span> test = 1:Ntest
+    <span class="keyword">for</span> idx = 1:numel(pBar)
+        h_idx(idx) = XSteam(<span class="string">'h_pT'</span>,pBar(idx),TCelsius(idx));
+    <span class="keyword">end</span>
+    testTime(test) = toc;
+<span class="keyword">end</span>
+XSteam_avg_time = mean(testTime);
+fprintf(<span class="string">'XSteam avg time: %f\n\n'</span>,mean(testTime))
+<span class="comment">% speed increase</span>
+fprintf(<span class="string">'IAPWS_IF97 is %fX faster than XSteam.\n\n'</span>, <span class="keyword">...</span>
+    XSteam_avg_time/IAWPS_IF97_avg_time)
+<span class="comment">% average relative difference</span>
+h_err = (h_test-h_idx)./h_test;
+h_nan = isnan(h_err); <span class="comment">% trim disagreements on valid ranges @ (0.1bar,46C) &amp; (0.25bar,65C)</span>
+h_err = h_err(~h_nan);pBar = pBar(~h_nan);TCelsius = TCelsius(~h_nan);
+[errmax,idx] = max(h_err(:));
+fprintf(<span class="string">'Max difference: %f%% at (%f[bar],%f[C])\n'</span>,errmax*100,pBar(idx),TCelsius(idx))
+[errmin,idx] = min(h_err(:));
+fprintf(<span class="string">'Min difference: %f%% at (%f[bar],%f[C])\n'</span>,errmin*100,pBar(idx),TCelsius(idx))
+fprintf(<span class="string">'RMS difference: %f%%\n'</span>, 100*sqrt(mean(h_err(:).^2)))
+</pre><pre class="codeoutput">Test IAPWS_IF97 30 times...
+IAPWS_IF97 avg time: 0.706895
+
+Test XSteam 3 times...
+XSteam avg time: 11.982746
+
+IAPWS_IF97 is 16.951248X faster than XSteam.
+
+Max difference: 0.026006% at (265.918874[bar],385.802676[C])
+Min difference: -0.049508% at (221.045463[bar],375.113712[C])
+RMS difference: 0.000806%
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% IAPWS_IF97 Example
+% <http://en.wikipedia.org/wiki/Steam Pressure-Enthalpy Diagram>
+%% initialize workspace
+close('all'),clear('all'),clc
+%% Pressure and temperature ranges
+press_rng = logspace(-2,2,300); % [MPa] pressure (p) range
+temp_rng = 273.15+linspace(1,800,300); % [K] temperature (T) range
+%% Calculate enthalpy
+[p,T] = meshgrid(press_rng,temp_rng); % [MPa,K] mesh p & T
+h = IAPWS_IF97('h_pT',p,T); % [kJ/kg] enthalpy = f(p,T)
+%% Inside the vapor dome
+psat = IAPWS_IF97('psat_T',temp_rng); % [MPa] saturation pressure
+psat = psat(~isnan(psat)); % trim out of range temperatures
+hLsat = IAPWS_IF97('hL_p',psat); % [kJ/kg] saturated liquid enthalpy
+hVsat = IAPWS_IF97('hV_p',psat); % [kJ/kg] saturated vapor enthalpy
+pcrit = 22.064; % [MPa] critical pressure
+hLcrit = IAPWS_IF97('hL_p',pcrit);hVcrit = IAPWS_IF97('hV_p',pcrit);
+Tcrit = IAPWS_IF97('Tsat_p',pcrit); hcrit = IAPWS_IF97('h_pT',pcrit,Tcrit);
+hVL = hVsat - hLsat; % [kJ/kg] heat of vaporization
+hX = hLsat*ones(1,9) + hVL*(0.1:0.1:0.9); % [kJ/kg] mixture enthalpy
+%% plot
+contour(h,p,T,25) % contour plot
+% format plot
+set(gca,'YScale','log'),grid,hold('all')
+title('Pressure-Enthalpy Diagram'), xlabel('enthalpy, h [kJ/kg]'),ylabel('pressure, p [MPa]')
+plot([hLsat;hLcrit],[psat;pcrit],'b', ...
+    [hVsat;hVcrit],[psat;pcrit],'r', ...
+    hcrit,pcrit,'o', ...
+    hX,psat*ones(1,9),'g') % vapor dome
+vapdome_leg = cellstr([num2str((1:9)'*10),repmat('%',9,1)]); % vapor dome legend
+legend('Enthalpy','Sat Liq','Sat Vap','Crit',vapdome_leg{:}) % legend
+
+%% Compare against XSteam
+% To run this test download XSteam from the FileExchange first.
+
+% test  IAPWS_IF97
+Ntest = 30;fprintf('Test IAPWS_IF97 %d times...\n',Ntest)
+testTime = zeros(Ntest,1);
+for test = 1:Ntest
+    tic,h_test = IAPWS_IF97('h_pT',p,T);testTime(test) = toc;
+end
+IAWPS_IF97_avg_time = mean(testTime);
+fprintf('IAPWS_IF97 avg time: %f\n\n',IAWPS_IF97_avg_time)
+% test XSteam
+pBar = p*10; % convert to bar
+TCelsius = T-273.15; % convert to C
+h_idx = nan(size(pBar));
+Ntest = 3;fprintf('Test XSteam %d times...\n',Ntest)
+testTime = zeros(Ntest,1);
+tic
+for test = 1:Ntest
+    for idx = 1:numel(pBar)
+        h_idx(idx) = XSteam('h_pT',pBar(idx),TCelsius(idx));
+    end
+    testTime(test) = toc;
+end
+XSteam_avg_time = mean(testTime);
+fprintf('XSteam avg time: %f\n\n',mean(testTime))
+% speed increase
+fprintf('IAPWS_IF97 is %fX faster than XSteam.\n\n', ...
+    XSteam_avg_time/IAWPS_IF97_avg_time)
+% average relative difference
+h_err = (h_test-h_idx)./h_test;
+h_nan = isnan(h_err); % trim disagreements on valid ranges @ (0.1bar,46C) & (0.25bar,65C)
+h_err = h_err(~h_nan);pBar = pBar(~h_nan);TCelsius = TCelsius(~h_nan);
+[errmax,idx] = max(h_err(:));
+fprintf('Max difference: %f%% at (%f[bar],%f[C])\n',errmax*100,pBar(idx),TCelsius(idx))
+[errmin,idx] = min(h_err(:));
+fprintf('Min difference: %f%% at (%f[bar],%f[C])\n',errmin*100,pBar(idx),TCelsius(idx))
+fprintf('RMS difference: %f%%\n', 100*sqrt(mean(h_err(:).^2)))
+
+##### SOURCE END #####
+--></body></html>
